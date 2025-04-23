@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+  <div class="h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 overflow-hidden">
     <!-- 导航栏 - 使用磨砂玻璃效果增强现代感 -->
-    <nav class="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+    <nav class="flex-none h-16 z-50 backdrop-blur-md bg-white/70 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div class="flex justify-between h-full">
           <!-- Logo区域 -->
           <div class="flex items-center">
             <router-link to="/" class="flex items-center space-x-2 group">
@@ -70,9 +70,9 @@
     <MobileMenu :open="mobileMenuOpen" @close="mobileMenuOpen = false" :nav-items="navItems" :side-items="[...guideItems, ...toolItems]" />
 
     <!-- 主内容区 -->
-    <div class="flex-grow flex flex-col md:flex-row">
-      <!-- 侧边栏 - 优化滚动和交互效果 -->
-      <aside class="w-64 shrink-0 hidden md:block overflow-y-auto scrollbar border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 h-[calc(100vh-4rem)] sticky top-16">
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <!-- 侧边栏 - 使用flex-none固定宽度 -->
+      <aside class="w-64 flex-none hidden md:block bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 overflow-y-auto">
         <div class="p-4">
           <!-- 安全指南部分 -->
           <SidebarSection
@@ -121,35 +121,21 @@
         </div>
       </aside>
 
-      <!-- 内容区域 - 添加 :key 确保路由变化时强制重新渲染 -->
-      <main class="flex-grow p-4 md:p-6 lg:p-8 transition-all duration-300 dark:text-slate-100 overflow-x-hidden">
-        <router-view v-slot="{ Component }" :key="$route.fullPath">
-          <transition name="fade" mode="out-in">
-            <div class="view-wrapper">
+      <!-- 内容区域 -->
+      <main class="flex-1 overflow-y-auto relative bg-slate-50 dark:bg-slate-900">
+        <div class="p-4 md:p-6 lg:p-8">
+          <router-view v-slot="{ Component }" :key="$route.fullPath">
+            <transition name="fade" mode="out-in">
               <component :is="Component" />
-            </div>
-          </transition>
-        </router-view>
+            </transition>
+          </router-view>
+        </div>
       </main>
     </div>
 
-    <!-- 移动端底部导航 - 优化交互和视觉效果 -->
-    <div class="md:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-40 flex items-center justify-around">
-      <router-link
-        v-for="item in mobileNavItems"
-        :key="item.path"
-        :to="item.path"
-        class="py-3 flex flex-1 flex-col items-center justify-center text-xs font-medium transition-colors"
-        :class="[$route.path === item.path ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400']"
-      >
-        <component :is="item.icon" class="h-5 w-5 mb-1" />
-        <span>{{ item.name }}</span>
-      </router-link>
-    </div>
-
-    <!-- 页脚 - 现代化设计 -->
-    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 md:py-6 md:relative">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- 页脚 -->
+    <footer class="flex-none bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div class="flex flex-col md:flex-row justify-between items-center text-slate-500 dark:text-slate-400 text-sm gap-y-3">
           <div class="flex items-center">
             <div class="h-6 w-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md flex items-center justify-center mr-2">
@@ -166,6 +152,20 @@
         </div>
       </div>
     </footer>
+
+    <!-- 移动端底部导航 -->
+    <div class="md:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-40">
+      <router-link
+        v-for="item in mobileNavItems"
+        :key="item.path"
+        :to="item.path"
+        class="py-3 flex flex-1 flex-col items-center justify-center text-xs font-medium transition-colors"
+        :class="[$route.path === item.path ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400']"
+      >
+        <component :is="item.icon" class="h-5 w-5 mb-1" />
+        <span>{{ item.name }}</span>
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -284,5 +284,20 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* 全局样式 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .main-content {
+    padding-bottom: env(safe-area-inset-bottom, 4rem);
+  }
 }
 </style>

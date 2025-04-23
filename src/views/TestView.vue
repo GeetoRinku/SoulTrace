@@ -1,10 +1,10 @@
 <template>
-  <div class="test-view">
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col p-3 md:p-4 text-gray-800 dark:text-gray-200">
+  <div class="test-view h-full">
+    <div class="h-full bg-gray-100 dark:bg-gray-900 flex flex-col p-3 md:p-4 text-gray-800 dark:text-gray-200">
       <!-- 主容器 -->
       <div class="flex-1 flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
-        <!-- 头部 -->
-        <div class="bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 dark:from-indigo-900/30 dark:to-indigo-900/20 p-4 border-b border-gray-100 dark:border-gray-700">
+        <!-- 头部 - 固定高度 -->
+        <div class="flex-none bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 dark:from-indigo-900/30 dark:to-indigo-900/20 p-4 border-b border-gray-100 dark:border-gray-700">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
               <div class="bg-indigo-600 p-2 rounded-lg shadow-md">
@@ -53,167 +53,169 @@
 
         <!-- 主内容区 -->
         <div class="flex-1 flex overflow-hidden">
-          <!-- 左侧控制面板 -->
-          <div class="w-72 border-r border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 overflow-y-auto p-4 space-y-5 flex-shrink-0">
-            <!-- API 提供商选择 -->
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                  <ServerIcon class="h-5 w-5 mr-2 text-indigo-500" />
-                  选择提供商
-                </h2>
-              </div>
-
-              <div v-if="providers.length === 0" class="text-center py-4 text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-                未找到可用的 API 提供商
-              </div>
-
-              <div v-else class="space-y-2">
-                <div
-                  v-for="provider in providers"
-                  :key="provider.id"
-                  @click="selectProvider(provider.id)"
-                  class="flex items-center justify-between p-3 text-sm rounded-lg border cursor-pointer transition-all duration-200"
-                  :class="selectedProvider === provider.id
-                    ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'"
-                >
-                  <span class="font-medium truncate">{{ provider.name }}</span>
-                  <CheckIcon v-if="selectedProvider === provider.id" class="h-4.5 w-4.5 text-indigo-500" />
+          <!-- 左侧控制面板 - 添加滚动 -->
+          <div class="w-72 border-r border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 overflow-y-auto flex-none">
+            <div class="p-4 space-y-5">
+              <!-- API 提供商选择 -->
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                    <ServerIcon class="h-5 w-5 mr-2 text-indigo-500" />
+                    选择提供商
+                  </h2>
                 </div>
-              </div>
-            </div>
 
-            <!-- 模型选择 -->
-            <div v-if="selectedProvider" class="space-y-3">
-              <div class="flex items-center justify-between">
-                <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                  <CpuChipIcon class="h-5 w-5 mr-2 text-indigo-500" />
-                  选择模型
-                </h2>
-
-                <div v-if="isApiConfigured" class="flex items-center">
-                  <span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-500 mr-1.5"></span>
-                  <span class="text-sm text-green-600 dark:text-green-400 font-medium">已连接</span>
+                <div v-if="providers.length === 0" class="text-center py-4 text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+                  未找到可用的 API 提供商
                 </div>
-                <router-link v-else to="/settings" class="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center">
-                  <ExclamationCircleIcon class="h-4 w-4 mr-1.5" />
-                  配置API
-                </router-link>
-              </div>
 
-              <div v-if="availableModels.length === 0" class="text-center py-4 text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
-                未找到可用模型
-              </div>
-
-              <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1 -mr-1">
-                <div
-                  v-for="model in availableModels"
-                  :key="model.id"
-                  @click="selectModel(model.id)"
-                  class="flex items-center justify-between p-3 text-sm rounded-lg border cursor-pointer transition-all duration-200"
-                  :class="selectedModel === model.id
-                    ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'"
-                >
-                  <span class="font-medium truncate">{{ model.name }}</span>
-                  <CheckIcon v-if="selectedModel === model.id" class="h-4.5 w-4.5 text-indigo-500" />
+                <div v-else class="space-y-2">
+                  <div
+                    v-for="provider in providers"
+                    :key="provider.id"
+                    @click="selectProvider(provider.id)"
+                    class="flex items-center justify-between p-3 text-sm rounded-lg border cursor-pointer transition-all duration-200"
+                    :class="selectedProvider === provider.id
+                      ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                  >
+                    <span class="font-medium truncate">{{ provider.name }}</span>
+                    <CheckIcon v-if="selectedProvider === provider.id" class="h-4.5 w-4.5 text-indigo-500" />
+                  </div>
                 </div>
               </div>
 
-              <!-- 温度设置 -->
-              <div class="pt-3 mt-1 border-t border-gray-100 dark:border-gray-700">
-                <div class="flex justify-between items-center mb-2">
-                  <label class="text-sm font-medium text-gray-600 dark:text-gray-400">温度: {{ temperature }}</label>
-                </div>
-                <input
-                  v-model="temperature"
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-indigo-600"
-                />
-              </div>
-            </div>
+              <!-- 模型选择 -->
+              <div v-if="selectedProvider" class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                    <CpuChipIcon class="h-5 w-5 mr-2 text-indigo-500" />
+                    选择模型
+                  </h2>
 
-            <!-- 安全检测选项 -->
-            <div class="pt-3 mt-1 border-t border-gray-100 dark:border-gray-700">
-              <div class="flex justify-between items-center mb-2">
-                <label class="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center">
-                  <ShieldCheckIcon class="h-5 w-5 mr-2 text-indigo-500" />
-                  安全检测
-                </label>
-              </div>
-              <div class="space-y-2">
-                <div class="flex items-center">
-                  <input id="input-regex" type="checkbox" v-model="securityOptions.inputRegex" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-                  <label for="input-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输入正则语义分析检测</label>
-                </div>
-                <div class="flex items-center">
-                  <input id="input-model" type="checkbox" v-model="securityOptions.inputModel" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-                  <label for="input-model" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输入外置大模型检测</label>
-                </div>
-                <div class="flex items-center">
-                  <input id="output-regex" type="checkbox" v-model="securityOptions.outputRegex" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-                  <label for="output-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输出正则语义分析检测</label>
-                </div>
-                <div class="flex items-center">
-                  <input id="output-model" type="checkbox" v-model="securityOptions.outputModel" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
-                  <label for="output-model" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输出外置大模型检测</label>
-                </div>
-                <div class="flex justify-end">
-                  <router-link to="/jailbreak-detection" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors">
-                    配置检测规则 →
+                  <div v-if="isApiConfigured" class="flex items-center">
+                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-green-500 mr-1.5"></span>
+                    <span class="text-sm text-green-600 dark:text-green-400 font-medium">已连接</span>
+                  </div>
+                  <router-link v-else to="/settings" class="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center">
+                    <ExclamationCircleIcon class="h-4 w-4 mr-1.5" />
+                    配置API
                   </router-link>
                 </div>
+
+                <div v-if="availableModels.length === 0" class="text-center py-4 text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+                  未找到可用模型
+                </div>
+
+                <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1 -mr-1">
+                  <div
+                    v-for="model in availableModels"
+                    :key="model.id"
+                    @click="selectModel(model.id)"
+                    class="flex items-center justify-between p-3 text-sm rounded-lg border cursor-pointer transition-all duration-200"
+                    :class="selectedModel === model.id
+                      ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                  >
+                    <span class="font-medium truncate">{{ model.name }}</span>
+                    <CheckIcon v-if="selectedModel === model.id" class="h-4.5 w-4.5 text-indigo-500" />
+                  </div>
+                </div>
+
+                <!-- 温度设置 -->
+                <div class="pt-3 mt-1 border-t border-gray-100 dark:border-gray-700">
+                  <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">温度: {{ temperature }}</label>
+                  </div>
+                  <input
+                    v-model="temperature"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-indigo-600"
+                  />
+                </div>
               </div>
-            </div>
 
-            <!-- 角色按钮 -->
-            <div class="pt-3 border-t border-gray-100 dark:border-gray-700">
-              <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center mb-3">
-                <UserGroupIcon class="h-5 w-5 mr-2 text-indigo-500" />
-                添加消息
-              </h2>
-
-              <div class="grid grid-cols-1 gap-2.5">
-                <button @click="addMessage('system')" class="flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
-                  <ServerIcon class="h-4.5 w-4.5 mr-2" />
-                  系统消息
-                </button>
-                <button @click="addMessage('user')" class="flex items-center justify-center px-3 py-2 border border-indigo-300 dark:border-indigo-600 rounded-md shadow-sm text-sm font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
-                  <UserIcon class="h-4.5 w-4.5 mr-2" />
-                  用户消息
-                </button>
-                <button @click="addMessage('assistant')" class="flex items-center justify-center px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                  <SparklesIcon class="h-4.5 w-4.5 mr-2" />
-                  助手消息
-                </button>
+              <!-- 安全检测选项 -->
+              <div class="pt-3 mt-1 border-t border-gray-100 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center">
+                    <ShieldCheckIcon class="h-5 w-5 mr-2 text-indigo-500" />
+                    安全检测
+                  </label>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <input id="input-regex" type="checkbox" v-model="securityOptions.inputRegex" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+                    <label for="input-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输入正则语义分析检测</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="input-model" type="checkbox" v-model="securityOptions.inputModel" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+                    <label for="input-model" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输入外置大模型检测</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="output-regex" type="checkbox" v-model="securityOptions.outputRegex" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+                    <label for="output-regex" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输出正则语义分析检测</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="output-model" type="checkbox" v-model="securityOptions.outputModel" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+                    <label for="output-model" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">输出外置大模型检测</label>
+                  </div>
+                  <div class="flex justify-end">
+                    <router-link to="/jailbreak-detection" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors">
+                      配置检测规则 →
+                    </router-link>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <!-- 快速启动 -->
-            <div class="pt-3 border-t border-gray-100 dark:border-gray-700">
-              <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center mb-3">
-                <RocketLaunchIcon class="h-5 w-5 mr-2 text-indigo-500" />
-                快速启动
-              </h2>
+              <!-- 角色按钮 -->
+              <div class="pt-3 border-t border-gray-100 dark:border-gray-700">
+                <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center mb-3">
+                  <UserGroupIcon class="h-5 w-5 mr-2 text-indigo-500" />
+                  添加消息
+                </h2>
 
-              <div class="grid grid-cols-1 gap-2.5">
-                <button @click="addDefaultSystemMessage" class="flex items-center justify-center px-3 py-2 border border-green-300 dark:border-green-700 rounded-md shadow-sm text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
-                  <DocumentTextIcon class="h-4.5 w-4.5 mr-2 text-green-500 dark:text-green-400" />
-                  默认系统提示
-                </button>
-                <button @click="addExampleChat" class="flex items-center justify-center px-3 py-2 border border-amber-300 dark:border-amber-700 rounded-md shadow-sm text-sm font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
-                  <ChatBubbleLeftRightIcon class="h-4.5 w-4.5 mr-2 text-amber-500 dark:text-amber-400" />
-                  示例对话
-                </button>
+                <div class="grid grid-cols-1 gap-2.5">
+                  <button @click="addMessage('system')" class="flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                    <ServerIcon class="h-4.5 w-4.5 mr-2" />
+                    系统消息
+                  </button>
+                  <button @click="addMessage('user')" class="flex items-center justify-center px-3 py-2 border border-indigo-300 dark:border-indigo-600 rounded-md shadow-sm text-sm font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
+                    <UserIcon class="h-4.5 w-4.5 mr-2" />
+                    用户消息
+                  </button>
+                  <button @click="addMessage('assistant')" class="flex items-center justify-center px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                    <SparklesIcon class="h-4.5 w-4.5 mr-2" />
+                    助手消息
+                  </button>
+                </div>
+              </div>
+
+              <!-- 快速启动 -->
+              <div class="pt-3 border-t border-gray-100 dark:border-gray-700">
+                <h2 class="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center mb-3">
+                  <RocketLaunchIcon class="h-5 w-5 mr-2 text-indigo-500" />
+                  快速启动
+                </h2>
+
+                <div class="grid grid-cols-1 gap-2.5">
+                  <button @click="addDefaultSystemMessage" class="flex items-center justify-center px-3 py-2 border border-green-300 dark:border-green-700 rounded-md shadow-sm text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+                    <DocumentTextIcon class="h-4.5 w-4.5 mr-2 text-green-500 dark:text-green-400" />
+                    默认系统提示
+                  </button>
+                  <button @click="addExampleChat" class="flex items-center justify-center px-3 py-2 border border-amber-300 dark:border-amber-700 rounded-md shadow-sm text-sm font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+                    <ChatBubbleLeftRightIcon class="h-4.5 w-4.5 mr-2 text-amber-500 dark:text-amber-400" />
+                    示例对话
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- 右侧对话区域 -->
+          <!-- 右侧对话区域 - 优化滚动结构 -->
           <div class="flex-1 flex flex-col overflow-hidden">
             <!-- 消息列表 -->
             <div class="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-800/50" ref="chatContainer">
@@ -320,8 +322,8 @@
               </div>
             </div>
 
-            <!-- 输入区域 -->
-            <div class="border-t border-gray-100 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
+            <!-- 输入区域 - 固定高度 -->
+            <div class="flex-none border-t border-gray-100 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
               <div class="flex">
                 <textarea
                   v-model="newMessage"
@@ -345,8 +347,8 @@
           </div>
         </div>
 
-        <!-- API数据查看器 -->
-        <div class="border-t border-gray-100 dark:border-gray-700">
+        <!-- API数据查看器 - 可折叠区域 -->
+        <div class="flex-none border-t border-gray-100 dark:border-gray-700">
           <div
             @click="showApiData = !showApiData"
             class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -1151,5 +1153,12 @@ function copyApiData() {
 
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
+}
+
+/* 确保页面容器填满可用空间 */
+.test-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 </style>
