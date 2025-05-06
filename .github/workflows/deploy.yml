@@ -2,66 +2,46 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
-      - name: Setup Node.js
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 20
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
-
-      # 构建用于 GitHub Pages 的版本
-      - name: Build for GitHub Pages
-        env:
-          NODE_ENV: production
-          CUSTOM_DOMAIN: 'false'
+      - name: Build
         run: npm run build-only
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        with:
-          enablement: true
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
-
-      - name: Deploy to deploy branch
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          branch: deploy
-          clean: true
-          clean-exclude: |
-            CNAME
-          single-commit: true
+          path: './dist'
 
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build-and-deploy
     runs-on: ubuntu-latest
-    
+    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
